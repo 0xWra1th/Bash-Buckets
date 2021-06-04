@@ -22,8 +22,6 @@
 -->
 [![Contributors][contributors-shield]][contributors-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
-
 
 <!-- PROJECT LOGO -->
 <br />
@@ -64,5 +62,3 @@ Project Link: [https://github.com/0xWra1th/Bash-Buckets](https://github.com/0xWr
 [contributors-url]: https://github.com/0xWra1th/Bash-Buckets/graphs/contributors
 [issues-shield]: https://img.shields.io/github/issues/0xWra1th/Bash-Buckets?style=for-the-badge
 [issues-url]: https://github.com/0xWra1th/Bash-Buckets/issues
-[license-shield]: https://img.shields.io/github/license/0xWra1th/Bash-Buckets?style=for-the-badge
-[license-url]: https://github.com/0xWra1th/Bash-Buckets/blob/master/LICENSE.txt
