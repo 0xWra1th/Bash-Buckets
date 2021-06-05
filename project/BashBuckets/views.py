@@ -1,5 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from subprocess import check_output
+import json
 
 # Index View For BashBucket API
 def index(request):
@@ -12,15 +14,31 @@ def analytics(request):
 # List Files/Folders in given bucket if Auth token is valid
 def listFiles(request):
 	if(request.method == 'POST'):
-		data = {
-			"status":"Undetermined",
-			"list": [
-				"cats.txt",
-				"dogs.txt",
-				"Files (dir)",
-			],
-		}
-		res = JsonResponse(data)
+		# Get request body
+		body = request.body
+		content = json.loads(body)
+
+	# 1) Validate Auth Token (Database)
+		# Get token and validate against DB
+
+
+	# 2) Retrieve folders and files from bucket (Bash -> ls in supplied dir)
+		# Get parameters and call script
+		dir = str(content['bucket'])+str(content['path'])
+		scriptRes = check_output("./scripts/test.sh "+str(dir), shell=True)
+
+	# 3) Return JSON Object
+		# Decode Script Response into Individual Files/Folders
+		list = scriptRes.split(b'\n')
+		x = 0
+		for item in list:
+			list[x] = str(item.decode('utf-8'))
+			x+=1
+		list.remove('')
+		# Format JSON Response and return
+		data = {"list": list}
+		res = JsonResponse(data, safe=False)
 		return res
+
 	else:
 		return HttpResponse(status=405)
