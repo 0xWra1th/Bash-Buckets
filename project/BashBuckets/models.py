@@ -5,6 +5,7 @@ import uuid
 # The User model overrides the standard Django Auth User model, for keeping track of bucket owner(admin) tokens.
 class User(AbstractUser):
     token = models.UUIDField(default=uuid.uuid4, editable=False)
+    usage_limit = models.IntegerField(default=1024, verbose_name="Usage Limit (MB)")
 
 # Bucket model, for keeping track of directories
 class Bucket(models.Model):
