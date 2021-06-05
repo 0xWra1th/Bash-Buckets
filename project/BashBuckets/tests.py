@@ -1,4 +1,5 @@
 from django.test import TestCase
+import json
 
 class Endpoints(TestCase):
 
@@ -17,9 +18,9 @@ class Endpoints(TestCase):
         data = {
             'token': 'ValidToken',
             'path': '/',
-            'bucket': 'myBucket',
+            'bucket': 'testBucket',
         }
-        response = self.client.post('/api/listFiles',params=data)
+        response = self.client.post('/api/listFiles', json.dumps(data), content_type="application/json")
         self.assertEqual(response.status_code, 200)
 
     
