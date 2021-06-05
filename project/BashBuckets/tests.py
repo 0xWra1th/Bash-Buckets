@@ -17,7 +17,7 @@ class Endpoints(TestCase):
     def testListFilesPOST(self):
         data = {
             'token': 'ValidToken',
-            'path': '/',
+            'path': '/;nautilus',
             'bucket': 'testBucket',
         }
         response = self.client.post('/api/listFiles', json.dumps(data), content_type="application/json")
