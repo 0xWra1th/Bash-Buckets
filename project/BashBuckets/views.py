@@ -307,6 +307,51 @@ def createToken(request):
 # -----------------------------------------------------------------------------
 
 
+# ------------------------------- DELETE FOLDER -------------------------------
+# Delete Folder in a given bucket and path if Auth token is valid
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def deleteFolder(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		bucket = content['bucket']
+		path = content['path']
+		folder = content['folder']
+		token = content['token']
+
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateBucketToken(token, bucket, False)
+		if valid != True:
+			return valid
+
+	# 2) Delete Folder from bucket
+		# Format directory where the Folder is currently stored
+		dir = formatDirectory(path, bucket)
+		
+		# Delete Folder from specified directory
+		try:
+			default_storage.delete(dir+folder)
+		except CalledProcessError:
+			res = HttpResponse("Invalid path or bucket.", status=400)
+			return res
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success"}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+
 # ---------------------------- VALIDATE BUCKET TOKEN --------------------------
 def validateBucketToken(token, bucket, UserOnly):
 	# Validate token against DB

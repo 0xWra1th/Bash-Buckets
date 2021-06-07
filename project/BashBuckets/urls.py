@@ -9,6 +9,7 @@ urlpatterns = [
     path('api/listFiles', views.listFiles, name='listFiles'),
     path('api/uploadFile', views.uploadFile, name='uploadFile'),
     path('api/deleteFile', views.deleteFile, name='deleteFile'),
+    path('api/deleteFolder', views.deleteFolder, name='deleteFolder'),
     path('api/createFolder', views.createFolder, name='createFolder'),
     path('api/createBucket', views.createBucket, name='createBucket'),
     path('api/createToken', views.createToken, name='createToken'),
