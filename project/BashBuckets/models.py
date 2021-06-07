@@ -9,8 +9,7 @@ class User(AbstractUser):
 
 # Bucket model, for keeping track of directories
 class Bucket(models.Model):
-    name = models.CharField(max_length=50)
-    path = models.CharField(max_length=50)
+    name = models.CharField(max_length=50,unique=True)
 
 # UserBuckets model, for keeping track who owns buckets
 class UserBucket(models.Model):
