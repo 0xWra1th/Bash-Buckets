@@ -17,7 +17,7 @@ class Endpoints(TestCase):
     def testListFilesPOST(self):
         data = {
             'token': 'd6c56284-70de-4dc8-b093-6e21185a402e',
-            'path': '/',
+            'path': '',
             'bucket': 'testBucket',
         }
         response = self.client.post('/api/listFiles', json.dumps(data), content_type="application/json")
