@@ -20,3 +20,9 @@ class UserBucket(models.Model):
 class AppToken(models.Model):
     bucket = models.ForeignKey(Bucket, on_delete=models.CASCADE)
     token = models.UUIDField(default=uuid.uuid4, editable=False)
+
+# Download code, one time links for downloading a file
+class DownloadCode(models.Model):
+    bucket = models.ForeignKey(Bucket, on_delete=models.CASCADE)
+    path = models.CharField(max_length=1024) # You never know how long paths are...
+    code = models.UUIDField(default=uuid.uuid4, editable=False)

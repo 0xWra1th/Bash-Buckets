@@ -1,10 +1,11 @@
 # IMPORTED RESOURCES
+from os import stat
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import AppToken, Bucket, User, UserBucket
+from .models import AppToken, Bucket, User, UserBucket, DownloadCode
 from subprocess import CalledProcessError, check_output
 from django.core.files.storage import default_storage
-import json, uuid
+import json, magic
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -18,7 +19,22 @@ def index(request):
 # ----------------------------- DISPLAY ANALYTICS -----------------------------
 # Analytics For BashBucket API
 def analytics(request):
-	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:10%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><br><h3>Beep, boop...beep!</h3</center></html>")
+	# Call script with args
+	try:
+		scriptRes = check_output("./scripts/analytics.sh", shell=True)
+		scriptRes = str(scriptRes.decode('utf-8'))
+
+		# Format output into individual stats
+		stats = scriptRes.split("@")
+		packages = stats[0][11::]
+		kernel = stats[1][21::]
+		cpu = stats[2].split('\n')[1]
+		mem = stats[3]
+		storage = stats[4]
+	except CalledProcessError:
+		res = HttpResponse("Something broke :(", status=500)
+		return res
+	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:5%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><pre>"+kernel+"</pre><pre>"+cpu+"</pre><pre>"+mem+"</pre><pre>"+storage+"</pre><textarea style=\"height:650px;width:1000px\">"+packages+"</textarea></center></html>")
 # -----------------------------------------------------------------------------
 
 # -------------------------------- LIST FILES ---------------------------------
@@ -86,7 +102,6 @@ def listFiles(request):
 def uploadFile(request):
 	if(request.method == 'POST'):
 		# Get request data
-		print(request.POST)
 		bucket = request.POST.get('bucket')
 		path = request.POST.get('path')
 		token = request.POST.get('token')
@@ -101,7 +116,27 @@ def uploadFile(request):
 	# 2) Save file in bucket
 		# Format directory where the file will be saved
 		dir = formatDirectory(path, bucket)
+
+		# Santize Filename (RCE is no joke and the file name my be used in a script later on)
+		if (';' in file.name) or ('|' in file.name) or ('<' in file.name) or ('>' in file.name):
+			res = HttpResponse("ERROR: File name contains illegal characters.", status=400)
+			return res
 		
+		# Get owner of bucket as an object
+		try:
+			bucketObj = Bucket.objects.get(name=bucket)
+			userBucketObj = UserBucket.objects.get(bucket=bucketObj)
+			buckerOwner = User.objects.get(id=userBucketObj.user_id)
+			remaining = getRemainingQuota(buckerOwner)
+		except Exception:
+			res = HttpResponse("Error while getting remaining storage space of bucket owner!", status=500)
+			return res
+
+		# Check if the bucket owner has remaining space in storage quota
+		if (remaining-(file.size/1024/1024)) < 0:
+			res = HttpResponse("Owner of bucket does insufficient remaining storage space!", status=400)
+			return res
+
 		# Save file to specified directory
 		try:
 			default_storage.save(dir+file.name, file)
@@ -293,7 +328,7 @@ def createToken(request):
 			newTok = AppToken(bucket=bucketObj)
 			newTok.save()
 		except Exception as e:
-			res = HttpResponse("ERROR: Bucket does not exist"+str(e), status=401)
+			res = HttpResponse("ERROR: Bucket does not exist"+str(e), status=400)
 			return res
 		
 	# 3) Return JSON Object
@@ -538,6 +573,131 @@ def listTokens(request):
 # -----------------------------------------------------------------------------
 
 
+# --------------------------- CREATE DOWNLOAD LINK ----------------------------
+# Create a one time download link for a file if Auth token is valid
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def createLink(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		bucket = content['bucket']
+		path = content['path']
+		file = content['filename']
+		token = content['token']
+
+	# 1) Validate Auth Token (Database) | Does user own bucket?
+		# Validate token against DB
+		valid = validateBucketToken(token, bucket, False)
+		if valid != True:
+			return valid
+
+	# 2) Prepare link to file in bucket
+		# Format directory where the file is currently stored
+		dir = formatDirectory(path, bucket)
+
+		# Check if file exists and create DownloadCode record in database
+		if default_storage.exists(dir+file):
+			try:
+				bucketObj = Bucket.objects.get(name=bucket)
+				newCode = DownloadCode(bucket=bucketObj,path=dir+file)
+				newCode.save()
+			except Exception:
+				res = HttpResponse("Error: Database error!", status=500)
+				return res
+		else:
+			res = HttpResponse("File does not exist!", status=400)
+			return res
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success", "link": request.build_absolute_uri("download?code="+str(newCode.code))}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# ------------------------------ DOWNLOAD FILE --------------------------------
+# Download file with onetime code as url query parameter
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def download(request):
+	if(request.method == 'GET'):
+		# Get request data
+		code = request.GET.get('code', '')
+	
+	# 2) Retrieve file associated with code
+		# Retrieve path from database
+		try:
+			codeObj = DownloadCode.objects.get(code=code)
+			filePath = codeObj.path
+		except Exception:
+			res = HttpResponse("Code is invalid!", status=400)
+			return res
+		
+		# Get file from system and Format HTTP Response
+		if default_storage.exists(filePath):
+			with open(filePath, 'rb') as file:
+				mime = magic.Magic(mime=True)
+				type = mime.from_file(filePath)
+				res = HttpResponse(file.read(), content_type=type)
+				res['Content-Disposition'] = 'inline; filename='+filePath.split('/')[len(filePath.split('/'))-1]
+		else:
+			res = HttpResponse("File does not exist, may have been deleted. Code will be deleted.", status=400)
+
+	# 3) Delete Download code (It is one time use only!)
+		codeObj.delete()
+
+	# 4) Return HTTP Response with file
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# ----------------------------- GET USER QUOTA --------------------------------
+# Get the amount of storage space a user has remaining
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def remainingQuota(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		token = content['token']
+
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateUser(token)
+		if type(valid) is HttpResponse:
+			return valid
+		user = valid[1]
+
+	# 2) Get remaining quota from function
+		remaining = getRemainingQuota(user)
+
+	# 5) Return HTTP Response with file
+		# Format JSON Response and return
+		data = {"remaining": remaining}
+		res = JsonResponse(data)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
 # ---------------------------- VALIDATE BUCKET TOKEN --------------------------
 def validateBucketToken(token, bucket, UserOnly):
 	# Validate token against DB
@@ -567,7 +727,7 @@ def validateBucketToken(token, bucket, UserOnly):
 			AppToken.objects.get(token=token, bucket=bucketObj)
 			return True
 		except Exception as e:
-			res = HttpResponse("ERROR: Token or bucket is invalid.", status=401)
+			res = HttpResponse("ERROR: Token or bucket is invalid.", status=400)
 			return res
 # -----------------------------------------------------------------------------
 
@@ -600,4 +760,33 @@ def formatDirectory(path, bucket):
 					return "buckets/"+bucket+"/"+path+"/"
 		else:
 			return "buckets/"+bucket+"/"
+# -----------------------------------------------------------------------------
+
+
+# ---------------------------- GET REMAINING QUOTA -----------------------------
+def getRemainingQuota(user):
+	# 1) Retrieve user quota
+		quota = int(user.usage_limit)
+
+	# 2) Get used storage space
+		# Get buckets and total size
+		total = 0
+		buckets = UserBucket.objects.filter(user=user)
+		for bucket in buckets:
+			bucketObj = Bucket.objects.get(id=bucket.bucket_id)
+			# Call script with args and format output into an int
+			try:
+				scriptRes = check_output("./scripts/size.sh \"buckets/"+bucketObj.name+"\"", shell=True)
+				scriptRes = str(scriptRes.decode('utf-8'))
+				size = scriptRes.split("\t")[0]
+			except CalledProcessError:
+				res = HttpResponse("Something broke :(", status=500)
+				return res
+			# Add to total in KB
+			total+=int(size)
+
+		
+	# 3) Calculate remaining storage space in megabytes (Converting total to MB) and return
+		remaining = quota-(total/1024)
+		return remaining
 # -----------------------------------------------------------------------------

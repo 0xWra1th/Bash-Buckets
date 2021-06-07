@@ -17,4 +17,7 @@ urlpatterns = [
     path('api/createToken', views.createToken, name='createToken'),
     path('api/listBuckets', views.listBuckets, name='listBuckets'),
     path('api/listTokens', views.listTokens, name='listTokens'),
+    path("api/download", views.download, name='download'),
+    path("api/createLink", views.createLink, name='createLink'),
+    path("api/remainingQuota", views.remainingQuota, name='remainingQuota'),
 ]
