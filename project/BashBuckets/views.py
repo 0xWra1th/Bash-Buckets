@@ -1,3 +1,4 @@
+# IMPORTED RESOURCES
 from os import name
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
@@ -7,22 +8,27 @@ from django.core.files.storage import default_storage
 import json
 from django.views.decorators.csrf import csrf_exempt
 
+# ------------------------------- DISPLAY INDEX -------------------------------
 # Index View For BashBucket API
 def index(request):
 	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:10%\">Hello, Welcome to the <i style=\"color: red\">Bash Bucket</i> cloud storage API!</h2></center></html>")
+# -----------------------------------------------------------------------------
 
+# ----------------------------- DISPLAY ANALYTICS -----------------------------
 # Analytics For BashBucket API
 def analytics(request):
 	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:10%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><br><h3>Beep, boop...beep!</h3</center></html>")
+# -----------------------------------------------------------------------------
 
+# -------------------------------- LIST FILES ---------------------------------
 # List Files/Folders in given bucket if Auth token is valid
-#######################
-#   FOR TESTING ONLY  #
+
+# FOR TESTING ONLY
 @csrf_exempt
-#######################
+
 def listFiles(request):
 	if(request.method == 'POST'):
-		# Get request body
+		# Get request data
 		body = request.body
 		content = json.loads(body)
 		bucket = content['bucket']
@@ -83,16 +89,18 @@ def listFiles(request):
 
 	else:
 		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
 
 
+# -------------------------------- UPLOAD FILE --------------------------------
 # Upload Files in given bucket and path if Auth token is valid
-#######################
-#   FOR TESTING ONLY  #
+
+# FOR TESTING ONLY
 @csrf_exempt
-#######################
+
 def uploadFile(request):
 	if(request.method == 'POST'):
-		# Get request body
+		# Get request data
 		print(request.POST)
 		bucket = request.POST.get('bucket')
 		path = request.POST.get('path')
@@ -124,7 +132,8 @@ def uploadFile(request):
 					dir = "buckets/"+bucket+"/"+path+"/"
 		else:
 			dir = "buckets/"+bucket+"/"
-		print(dir)
+		
+		# Save file to specified directory
 		try:
 			default_storage.save(dir+file.name, file)
 		except CalledProcessError:
@@ -139,4 +148,5 @@ def uploadFile(request):
 
 	else:
 		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
 
