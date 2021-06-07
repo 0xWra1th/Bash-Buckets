@@ -1,10 +1,10 @@
 # IMPORTED RESOURCES
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
-from .models import Bucket, User, UserBucket
+from .models import AppToken, Bucket, User, UserBucket
 from subprocess import CalledProcessError, check_output
 from django.core.files.storage import default_storage
-import json
+import json, uuid
 from django.views.decorators.csrf import csrf_exempt
 
 
@@ -38,7 +38,7 @@ def listFiles(request):
 
 	# 1) Validate Auth Token (Database)
 		# Validate token against DB
-		valid = validateToken(token, bucket, False)
+		valid = validateBucketToken(token, bucket, False)
 		if valid != True:
 			return valid
 
@@ -94,7 +94,7 @@ def uploadFile(request):
 
 	# 1) Validate Auth Token (Database)
 		# Validate token against DB
-		valid = validateToken(token, bucket, False)
+		valid = validateBucketToken(token, bucket, False)
 		if valid != True:
 			return valid
 
@@ -138,7 +138,7 @@ def deleteFile(request):
 
 	# 1) Validate Auth Token (Database)
 		# Validate token against DB
-		valid = validateToken(token, bucket, False)
+		valid = validateBucketToken(token, bucket, False)
 		if valid != True:
 			return valid
 
@@ -182,7 +182,7 @@ def createFolder(request):
 
 	# 1) Validate Auth Token (Database)
 		# Validate token against DB
-		valid = validateToken(token, bucket, False)
+		valid = validateBucketToken(token, bucket, False)
 		if valid != True:
 			return valid
 
@@ -229,12 +229,11 @@ def createBucket(request):
 
 	# 1) Validate Auth Token (Database)
 		# Validate token against DB
-		userObj = None
-		try:
-			userObj = User.objects.get(token=token)
-		except Exception as e:
-			res = HttpResponse("UNAUTHORISED: "+str(e), status=401)
-			return res
+		valid = validateUser(token)
+		if type(valid) is HttpResponse:
+			return valid
+		else:
+			userObj = valid[1]
 
 	# 2) Create new bucket
 		# Format directory of new bucket
@@ -268,14 +267,86 @@ def createBucket(request):
 # -----------------------------------------------------------------------------
 
 
-# ------------------------------- VALIDATE TOKEN ------------------------------
-def validateToken(token, bucket, UserToken):
+# ----------------------------- CREATE APP TOKEN ------------------------------
+# Create a new app token that allows for bucket read/write permissions
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def createToken(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		bucket = content['bucket']
+		token = content['token']
+
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateUser(token)
+		if type(valid) is HttpResponse:
+			return valid
+
+	# 2) Validate bucket and add new token to database
+		try:
+			bucketObj = Bucket.objects.get(name=bucket)
+			newTok = AppToken(bucket=bucketObj)
+			newTok.save()
+		except Exception as e:
+			res = HttpResponse("ERROR: Bucket does not exist"+str(e), status=401)
+			return res
+		
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success", "token": newTok.token}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# ---------------------------- VALIDATE BUCKET TOKEN --------------------------
+def validateBucketToken(token, bucket, UserOnly):
+	# Validate token against DB
+	# Is the operation allowed via app token or only user tokens?
+	if UserOnly:
+		try:
+			userObj = User.objects.get(token=token)
+			bucketObj = Bucket.objects.get(name=bucket)
+			UserBucket.objects.get(user=userObj, bucket=bucketObj)
+			return True
+		except Exception as e:
+			res = HttpResponse("UNAUTHORISED: "+str(e), status=401)
+			return res
+	else:
+		# Check if token is a user token
+		try:
+			userObj = User.objects.get(token=token)
+			bucketObj = Bucket.objects.get(name=bucket)
+			UserBucket.objects.get(user=userObj, bucket=bucketObj)
+			return True
+		except Exception as e:
+			pass
+
+		# Check if token is an app token
+		try:
+			bucketObj = Bucket.objects.get(name=bucket)
+			AppToken.objects.get(token=token, bucket=bucketObj)
+			return True
+		except Exception as e:
+			res = HttpResponse("ERROR: Token or bucket is invalid.", status=401)
+			return res
+# -----------------------------------------------------------------------------
+
+
+# -------------------------------- VALIDATE USER ------------------------------
+def validateUser(token):
 	# Validate token against DB
 	try:
-		userObj = User.objects.get(token=token)
-		bucketObj = Bucket.objects.get(name=bucket)
-		UserBucket.objects.get(user=userObj, bucket=bucketObj)
-		return True
+		user = User.objects.get(token=token)
+		return True, user
 	except Exception as e:
 		res = HttpResponse("UNAUTHORISED: "+str(e), status=401)
 		return res

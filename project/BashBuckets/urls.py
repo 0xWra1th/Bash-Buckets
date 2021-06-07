@@ -11,4 +11,5 @@ urlpatterns = [
     path('api/deleteFile', views.deleteFile, name='deleteFile'),
     path('api/createFolder', views.createFolder, name='createFolder'),
     path('api/createBucket', views.createBucket, name='createBucket'),
+    path('api/createToken', views.createToken, name='createToken'),
 ]
