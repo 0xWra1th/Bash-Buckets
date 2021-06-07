@@ -332,10 +332,16 @@ def deleteFolder(request):
 	# 2) Delete Folder from bucket
 		# Format directory where the Folder is currently stored
 		dir = formatDirectory(path, bucket)
+		dir = dir+folder
 		
-		# Delete Folder from specified directory
+		# Santize Input (RCE is no joke.)
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
+			return res
+		
+		# Call script with args
 		try:
-			default_storage.delete(dir+folder)
+			check_output("./scripts/delete_dir.sh \""+str(dir)+"\"", shell=True)
 		except CalledProcessError:
 			res = HttpResponse("Invalid path or bucket.", status=400)
 			return res
@@ -351,6 +357,186 @@ def deleteFolder(request):
 # -----------------------------------------------------------------------------
 
 
+# ------------------------------- DELETE BUCKET -------------------------------
+# Delete a given Bucket if Auth token is valid
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def deleteBucket(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		bucket = content['bucket']
+		token = content['token']
+
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateBucketToken(token, bucket, True)
+		if valid != True:
+			return valid
+
+	# 2) Delete Bucket
+		# Format directory where the Bucket is currently stored
+		dir = "buckets/"+bucket
+
+		# Santize Input (RCE is no joke.)
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
+			return res
+		
+		# Call script with args
+		try:
+			check_output("./scripts/delete_dir.sh \""+str(dir)+"\"", shell=True)
+		except CalledProcessError:
+			res = HttpResponse("Invalid path or bucket.", status=400)
+			return res
+		
+		# Delete Bucket, UserBucket and AppTokens records from database
+		bucketObj = Bucket.objects.get(name=bucket)
+		UserBucket.objects.get(bucket=bucketObj).delete()
+		for tok in AppToken.objects.filter(bucket=bucketObj):
+			tok.delete()
+		bucketObj.delete()
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success"}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# ------------------------------- LIST BUCKETS --------------------------------
+# List User or App Token Buckets
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def listBuckets(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		token = content['token']
+
+	# 1) Determine if token is User or App and Get Buckets
+		userToken = True
+		try:
+			userObj = User.objects.get(token=token)
+		except Exception as e:
+			userToken = False
+		
+		try:
+			tokenObj = AppToken.objects.get(token=token)
+		except Exception as e:
+			res = HttpResponse("Invalid Token!", status=401)
+		
+		if userToken:
+			buckets = UserBucket.objects.filter(user=userObj)
+		else:
+			buckets = Bucket.objects.get(id=tokenObj.bucket_id)
+
+	# 2) Format Buckets into a list
+		list = []
+		if userToken:
+			for bucket in buckets:
+				list.append(Bucket.objects.get(id=bucket.bucket_id).name)
+		else:
+			list.append(buckets.name)
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"buckets": list}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# -------------------------------- DELETE TOKEN -------------------------------
+# Delete an App Token if Auth token is valid
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def deleteToken(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		apptoken = content['apptoken']
+		token = content['token']
+
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateUser(token)
+		if type(valid) is HttpResponse:
+			return valid
+
+
+	# 2) Delete App Token
+		try:
+			print("HERE")
+			AppToken.objects.get(token=apptoken).delete()
+		except Exception:
+			res = HttpResponse("Invalid App Token!", status=401)
+			return res
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success"}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
+
+# -------------------------------- LIST TOKENS --------------------------------
+# List App Tokens for User
+
+# FOR TESTING ONLY
+@csrf_exempt
+
+def listTokens(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		token = content['token']
+	
+	# 1) Validate Auth Token (Database)
+		# Validate token against DB
+		valid = validateUser(token)
+		if type(valid) is HttpResponse:
+			return valid
+		user = valid[1]
+
+	# 2) Retrieve and Format Tokens into a list
+		buckets = UserBucket.objects.filter(user=user)
+		list = []
+		for bucket in buckets:
+			for tok in AppToken.objects.filter(bucket=Bucket.objects.get(id=bucket.bucket_id)):
+				list.append(tok.token)
+
+	# 3) Return JSON Object
+		# Format JSON Response and return
+		data = {"tokens": list}
+		res = JsonResponse(data, safe=False)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
 
 # ---------------------------- VALIDATE BUCKET TOKEN --------------------------
 def validateBucketToken(token, bucket, UserOnly):
@@ -363,7 +549,7 @@ def validateBucketToken(token, bucket, UserOnly):
 			UserBucket.objects.get(user=userObj, bucket=bucketObj)
 			return True
 		except Exception as e:
-			res = HttpResponse("UNAUTHORISED: "+str(e), status=401)
+			res = HttpResponse("UNAUTHORISED: User token or bucket invalid!", status=401)
 			return res
 	else:
 		# Check if token is a user token
