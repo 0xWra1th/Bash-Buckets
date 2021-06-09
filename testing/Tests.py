@@ -13,7 +13,11 @@
 import requests, time, json, sys
 
 # Reused Values
-masterToken = str(sys.argv[1]) # Getting super user account token from command link argument
+try:
+	masterToken = str(sys.argv[1]) # Getting super user account token from command link argument
+except:
+	print("Please provide the superuser account token.")
+	exit()
 bucketName = 'THE_TEST_BUCKET' # Name of a bucket that will be created during testing
 folderName = 'THE_TEST_FOLDER' # Name of a folder that will be created during testing
 testFile = open('TEST_FILE.txt', 'rb') # A test file used during upload anf download api calls
