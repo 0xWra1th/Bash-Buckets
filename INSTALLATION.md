@@ -9,17 +9,15 @@ This systen is designed to be hosted on a Linux Debian 10 machine.
    * original-awk -> ```sudo apt-get install original-awk```
 
 2) Install Python and Modules:
-   * Run the commands given
+   * Run the commands given within the Bash-Buckets directory
    * Python3 -> ```sudo apt-get install python3```
-   * Django -> ```pip3 install django```
-   * python-magic -> ```pip3 install python-magic```
-   * requests -> ```pip3 install requests```
+   * Modules -> ```pip3 install -r requirements.txt```
 
 3) Setup and Run Django and the App:
-   * Go to the directory where you have all the files -> ```"Bash-Buckets"```
+   * Go to the root directory -> ```"Bash-Buckets"```
    * Go into 'project' where 'manage.py' is present -> ```"Bash-Buckets/project"```
    * Run: ```python3 manage.py createsuperuser```
-   * This is prompt you for details, provide account details for the superuser account you wish to create.
+   * This will prompt you for details, provide account details for your new superuser account.
    * Run: ```python3 manage.py makemigrations```
    * Run: ```python3 manage.py migrate```
    * Run: ```python3 manage.py runserver```
