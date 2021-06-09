@@ -6,7 +6,6 @@ from .models import AppToken, Bucket, User, UserBucket, DownloadCode
 from subprocess import CalledProcessError, check_output
 from django.core.files.storage import default_storage
 import json, magic
-from django.views.decorators.csrf import csrf_exempt
 
 
 # ------------------------------- DISPLAY INDEX -------------------------------
@@ -39,9 +38,6 @@ def analytics(request):
 
 # -------------------------------- LIST FILES ---------------------------------
 # List Files/Folders in given bucket if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def listFiles(request):
 	if(request.method == 'POST'):
@@ -84,7 +80,7 @@ def listFiles(request):
 			x+=1
 		list.remove('')
 		# Format JSON Response and return
-		data = {"list": list}
+		data = {"files": list}
 		res = JsonResponse(data, safe=False)
 		return res
 
@@ -95,9 +91,6 @@ def listFiles(request):
 
 # -------------------------------- UPLOAD FILE --------------------------------
 # Upload File to given bucket and path if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def uploadFile(request):
 	if(request.method == 'POST'):
@@ -158,9 +151,6 @@ def uploadFile(request):
 # -------------------------------- DELETE FILE --------------------------------
 # Delete File in a given bucket and path if Auth token is valid
 
-# FOR TESTING ONLY
-@csrf_exempt
-
 def deleteFile(request):
 	if(request.method == 'POST'):
 		# Get request data
@@ -201,9 +191,6 @@ def deleteFile(request):
 
 # ------------------------------- CREATE FOLDER -------------------------------
 # Create a new folder in a given bucket and path if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def createFolder(request):
 	if(request.method == 'POST'):
@@ -250,9 +237,6 @@ def createFolder(request):
 
 # ------------------------------- CREATE BUCKET -------------------------------
 # Create a new bucket if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def createBucket(request):
 	if(request.method == 'POST'):
@@ -305,9 +289,6 @@ def createBucket(request):
 # ----------------------------- CREATE APP TOKEN ------------------------------
 # Create a new app token that allows for bucket read/write permissions
 
-# FOR TESTING ONLY
-@csrf_exempt
-
 def createToken(request):
 	if(request.method == 'POST'):
 		# Get request data
@@ -344,9 +325,6 @@ def createToken(request):
 
 # ------------------------------- DELETE FOLDER -------------------------------
 # Delete Folder in a given bucket and path if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def deleteFolder(request):
 	if(request.method == 'POST'):
@@ -394,9 +372,6 @@ def deleteFolder(request):
 
 # ------------------------------- DELETE BUCKET -------------------------------
 # Delete a given Bucket if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def deleteBucket(request):
 	if(request.method == 'POST'):
@@ -449,9 +424,6 @@ def deleteBucket(request):
 # ------------------------------- LIST BUCKETS --------------------------------
 # List User or App Token Buckets
 
-# FOR TESTING ONLY
-@csrf_exempt
-
 def listBuckets(request):
 	if(request.method == 'POST'):
 		# Get request data
@@ -498,9 +470,6 @@ def listBuckets(request):
 # -------------------------------- DELETE TOKEN -------------------------------
 # Delete an App Token if Auth token is valid
 
-# FOR TESTING ONLY
-@csrf_exempt
-
 def deleteToken(request):
 	if(request.method == 'POST'):
 		# Get request data
@@ -518,7 +487,6 @@ def deleteToken(request):
 
 	# 2) Delete App Token
 		try:
-			print("HERE")
 			AppToken.objects.get(token=apptoken).delete()
 		except Exception:
 			res = HttpResponse("Invalid App Token!", status=401)
@@ -537,9 +505,6 @@ def deleteToken(request):
 
 # -------------------------------- LIST TOKENS --------------------------------
 # List App Tokens for User
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def listTokens(request):
 	if(request.method == 'POST'):
@@ -575,9 +540,6 @@ def listTokens(request):
 
 # --------------------------- CREATE DOWNLOAD LINK ----------------------------
 # Create a one time download link for a file if Auth token is valid
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def createLink(request):
 	if(request.method == 'POST'):
@@ -626,9 +588,6 @@ def createLink(request):
 # ------------------------------ DOWNLOAD FILE --------------------------------
 # Download file with onetime code as url query parameter
 
-# FOR TESTING ONLY
-@csrf_exempt
-
 def download(request):
 	if(request.method == 'GET'):
 		# Get request data
@@ -666,9 +625,6 @@ def download(request):
 
 # ----------------------------- GET USER QUOTA --------------------------------
 # Get the amount of storage space a user has remaining
-
-# FOR TESTING ONLY
-@csrf_exempt
 
 def remainingQuota(request):
 	if(request.method == 'POST'):
