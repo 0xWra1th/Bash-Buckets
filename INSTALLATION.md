@@ -19,7 +19,7 @@ This system is designed to be hosted on a Linux Debian 10 machine.
    * systemd -> ```sudo apt install systemd```
    * sysstat -> ```sudo apt install sysstat```
    * original-awk -> ```sudo apt install original-awk```
-   * sqlite3 -> ```sudo apt install sqlite3```
+   * (Optional) sqlite3 -> ```sudo apt install sqlite3```
 
 2) Install Python and Modules:
    * Run the commands given within the Bash-Buckets directory
@@ -41,4 +41,4 @@ This system is designed to be hosted on a Linux Debian 10 machine.
    * Start the server by running the start script -> ```./start.sh```
    * Inside the root directory you will find a testing folder containing 'Tests.py' -> ```"Bash-Buckets/testing/Tests.py"```
    * Run: ```python3 Tests.py <superuser-username> <superuser-password>```
-   * This will run the tests and confirm that the App if functioning correctly
+   * This will run the tests and confirm that the App is functioning correctly
