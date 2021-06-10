@@ -60,7 +60,7 @@ def listFiles(request):
 		dir = formatDirectory(path, bucket)
 		
 		# Santize Directory (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -110,9 +110,13 @@ def uploadFile(request):
 		# Format directory where the file will be saved
 		dir = formatDirectory(path, bucket)
 
-		# Santize Filename (RCE is no joke and the file name my be used in a script later on)
-		if (';' in file.name) or ('|' in file.name) or ('<' in file.name) or ('>' in file.name):
+		# Santize Filename and Directory (RCE is no joke and the file name my be used in a script later on)
+		if (';' in file.name) or ('|' in file.name) or ('<' in file.name) or ('>' in file.name) or ('./' in dir):
 			res = HttpResponse("ERROR: File name contains illegal characters.", status=400)
+			return res
+		
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 		
 		# Get owner of bucket as an object
@@ -168,12 +172,22 @@ def deleteFile(request):
 			return valid
 
 	# 2) Delete file from bucket
+		# Check path and file are not empty strings
+		if path == '' and file == '' :
+			res = HttpResponse("ERROR: Path and file fields are empty", status=400)
+			return res
+
 		# Format directory where the file is currently stored
-		dir = formatDirectory(path, bucket)
+		dir = formatDirectory(path, bucket)+file
 		
+		# Santize Input (Don't want people making links to server files...)
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+			res = HttpResponse("ERROR: Path or File name contains illegal characters.", status=400)
+			return res
+
 		# Delete file from specified directory
 		try:
-			default_storage.delete(dir+file)
+			default_storage.delete(dir)
 		except CalledProcessError:
 			res = HttpResponse("Invalid path or bucket.", status=400)
 			return res
@@ -213,7 +227,7 @@ def createFolder(request):
 		dir = formatDirectory(path, bucket)+folder
 
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -259,7 +273,7 @@ def createBucket(request):
 		dir = "buckets/"+bucket
 		
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -343,13 +357,18 @@ def deleteFolder(request):
 			return valid
 
 	# 2) Delete Folder from bucket
+		# Check path and file are not empty strings
+		if path == '' and folder == '' :
+			res = HttpResponse("ERROR: Path and folder fields are empty", status=400)
+			return res
+
 		# Format directory where the Folder is currently stored
 		dir = formatDirectory(path, bucket)
 		dir = dir+folder
 		
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
-			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+			res = HttpResponse("ERROR: Path or Folder contains illegal characters.", status=400)
 			return res
 		
 		# Call script with args
@@ -392,7 +411,7 @@ def deleteBucket(request):
 		dir = "buckets/"+bucket
 
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir):
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 		
@@ -560,6 +579,11 @@ def createLink(request):
 	# 2) Prepare link to file in bucket
 		# Format directory where the file is currently stored
 		dir = formatDirectory(path, bucket)
+
+		# Santize Input (Don't want people making links to server files...)
+		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
+			return res
 
 		# Check if file exists and create DownloadCode record in database
 		if default_storage.exists(dir+file):
