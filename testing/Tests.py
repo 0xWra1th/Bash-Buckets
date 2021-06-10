@@ -46,11 +46,13 @@ try:
 # ----------------------------- GET USER AUTH TOKEN ----------------------------
 	url = "http://127.0.0.1:8000/api/getUserToken"
 	data = {"username": username, "password": password}
+	print("-----------------------------\nTesting Get User Token\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
 			masterToken = resData['token']
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Retrieve User Token \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Retrieve User Token  \u001b[0m")
@@ -61,8 +63,10 @@ try:
 
 # ------------------------------- ANALYTICS TEST ------------------------------
 	url = "http://127.0.0.1:8000/analytics"
+	print("\n-----------------------------\nTesting Analytics Page\n-----------------------------\n\GET Request:\n\tURL: "+str(url)+"\n")
 	r = requests.post(url)
 	if(r.status_code == 200):
+		print("\tResponse:\n\t"+str(r))
 		print("\u001b[42m PASS: Analytics \u001b[0m")
 	else:
 		print("\u001b[41m FAIL: Analytics \u001b[0m")
@@ -71,10 +75,12 @@ try:
 # ----------------------------- CREATE BUCKET TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/createBucket"
 	data = {"token": masterToken, "bucket": bucketName}
+	print("\n-----------------------------\nTesting Create Bucket\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Create Bucket \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Create Bucket \u001b[0m")
@@ -85,10 +91,12 @@ try:
 # ----------------------------- CREATE FOLDER TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/createFolder"
 	data = {"token": masterToken, "bucket": bucketName, "path": "", "folder": folderName}
+	print("\n-----------------------------\nTesting Create Folder\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Create Folder \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Create Folder \u001b[0m")
@@ -100,10 +108,12 @@ try:
 	url = "http://127.0.0.1:8000/api/uploadFile"
 	files = {'file': testFile}
 	data = {"token": masterToken, "bucket": bucketName, "path": folderName, "file": testFile}
+	print("\n-----------------------------\nTesting Upload File\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, files=files, data=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Upload File \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Upload File \u001b[0m")
@@ -114,10 +124,12 @@ try:
 # ------------------------------- LIST FILES TEST -----------------------------
 	url = "http://127.0.0.1:8000/api/listFiles"
 	data = {"token": masterToken, "bucket": bucketName, "path": folderName}
+	print("\n-----------------------------\nTesting List Files\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('files' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: List Files \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: List Files \u001b[0m")
@@ -128,11 +140,13 @@ try:
 # ------------------------------ LIST BUCKETS TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/listBuckets"
 	data = {"token": masterToken}
+	print("\n-----------------------------\nTesting List Buckets\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	resData = json.loads(r.text)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('buckets' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: List Buckets \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: List Buckets \u001b[0m")
@@ -143,11 +157,13 @@ try:
 # ------------------------------ CREATE TOKEN TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/createToken"
 	data = {"token": masterToken, "bucket": bucketName}
+	print("\n-----------------------------\nTesting Create Token\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	resData = json.loads(r.text)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('token' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			appToken = resData['token']
 			print("\u001b[42m PASS: Create Token \u001b[0m")
 		else:
@@ -159,11 +175,13 @@ try:
 # ------------------------------- LIST TOKENS TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/listTokens"
 	data = {"token": masterToken}
+	print("\n-----------------------------\nTesting List Tokens\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	resData = json.loads(r.text)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('tokens' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: List Tokens \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: List Tokens \u001b[0m")
@@ -175,11 +193,13 @@ try:
 # ------------------------------ DELETE TOKEN TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/deleteToken"
 	data = {"token": masterToken, "apptoken": appToken}
+	print("\n-----------------------------\nTesting Delete Token\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	resData = json.loads(r.text)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Delete Token \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Delete Token \u001b[0m")
@@ -190,6 +210,7 @@ try:
 # ------------------------------- CREATE LINK TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/createLink"
 	data = {"token": masterToken, "bucket": bucketName, "path": folderName, "filename": testFile.name}
+	print("\n-----------------------------\nTesting Create Link\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	resData = json.loads(r.text)
 	if r.status_code == 200:
@@ -197,6 +218,7 @@ try:
 		if('link' in resData):
 			downloadLink = resData['link']
 			uploadSuccess = True
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Create Link \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Create Link \u001b[0m")
@@ -206,8 +228,10 @@ try:
 
 # ------------------------------ DOWNLOAD FILE TEST ---------------------------
 	if uploadSuccess:
+		print("\n-----------------------------\nTesting Create Link\n-----------------------------\n\tGET Request:\n\tURL: "+str(downloadLink)+"\n")
 		r = requests.get(downloadLink)
 		if r.status_code == 200:
+			print("\tResponse:\n\tDATA: "+str(r))
 			print("\u001b[42m PASS: Download File \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Download File -> "+str(r.status_code)+" \u001b[0m")
@@ -218,10 +242,12 @@ try:
 # ------------------------------- DELETE FILE TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/deleteFile"
 	data = {"token": masterToken, "bucket": bucketName, "path": folderName, "filename": testFile.name}
+	print("\n-----------------------------\nTesting Delete File\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Delete File \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Delete File \u001b[0m")
@@ -232,10 +258,12 @@ try:
 # ----------------------------- DELETE FOLDER TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/deleteFolder"
 	data = {"token": masterToken, "bucket": bucketName, "path": "", "folder": folderName}
+	print("\n-----------------------------\nTesting Delete Folder\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Delete Folder \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Delete Folder \u001b[0m")
@@ -246,10 +274,12 @@ try:
 # ----------------------------- DELETE BUCKET TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/deleteBucket"
 	data = {"token": masterToken, "bucket": bucketName}
+	print("\n-----------------------------\nTesting Delete Bucket\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('status' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Delete Bucket \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Delete Bucket \u001b[0m")
@@ -260,10 +290,12 @@ try:
 # ---------------------------- GET USER QUOTA TEST ----------------------------
 	url = "http://127.0.0.1:8000/api/remainingQuota"
 	data = {"token": masterToken}
+	print("\n-----------------------------\nTesting Get Remaining Quota\n-----------------------------\n\tPOST Request:\n\tURL: "+str(url)+"\n\tDATA: "+str(data)+"\n")
 	r = requests.post(url, json=data)
 	if r.status_code == 200:
 		resData = json.loads(r.text)
 		if('remaining' in resData):
+			print("\tResponse:\n\tDATA: "+str(resData))
 			print("\u001b[42m PASS: Get User Quota \u001b[0m")
 		else:
 			print("\u001b[41m FAIL: Get User Quota \u001b[0m")
