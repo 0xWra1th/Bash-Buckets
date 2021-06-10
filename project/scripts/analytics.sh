@@ -4,7 +4,7 @@
 # The @'s allow for easier string manipulation before templating in django
 
 # 1) Get upgradable packages
-apt list --upgradable
+apt list --upgradable 2>/dev/null
 echo "@"
 
 # 2) Get kernel version

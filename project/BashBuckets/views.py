@@ -22,10 +22,18 @@ def analytics(request):
 		cpu = stats[2].split('\n')[1]
 		mem = stats[3]
 		storage = stats[4]
+		data = {
+			'packages': packages,
+			'kernel': kernel,
+			'cpu': cpu,
+			'mem': mem,
+			'storage': storage,
+		}
 	except CalledProcessError:
 		res = HttpResponse("Something broke :(", status=500)
 		return res
-	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:5%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><pre>"+kernel+"</pre><pre>"+cpu+"</pre><pre>"+mem+"</pre><pre>"+storage+"</pre><textarea style=\"height:650px;width:1000px\">"+packages+"</textarea></center></html>")
+	return render(request, "BashBuckets/analytics.html", data)
+	#return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:5%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><pre>"+kernel+"</pre><pre>"+cpu+"</pre><pre>"+mem+"</pre><pre>"+storage+"</pre><textarea style=\"height:650px;width:1000px\">"+packages+"</textarea></center></html>")
 # -----------------------------------------------------------------------------
 
 
