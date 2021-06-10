@@ -3,7 +3,7 @@
   <a href="https://github.com/github_username/repo_name">
     <img src="images/bucket_logo.png" alt="Logo" width="80" height="80">
   </a>
-  <h3 align="center">Bit Buckets</h3>
+  <h3 align="center">Bash Buckets</h3>
 </p>
 
 ## About The Project
