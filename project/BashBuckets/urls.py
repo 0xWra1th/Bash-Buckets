@@ -1,10 +1,8 @@
-from django.contrib import admin
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
-    path('', views.index, name='index'),
     path('analytics', views.analytics, name='analytics'),
     path('api/listFiles', views.listFiles, name='listFiles'),
     path('api/uploadFile', views.uploadFile, name='uploadFile'),
@@ -20,4 +18,5 @@ urlpatterns = [
     path("api/download", views.download, name='download'),
     path("api/createLink", views.createLink, name='createLink'),
     path("api/remainingQuota", views.remainingQuota, name='remainingQuota'),
+    path("api/getUserToken", views.getUserToken, name='getUserToken'),
 ]

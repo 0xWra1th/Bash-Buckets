@@ -1,6 +1,6 @@
 # Installation, Setup and Testing
 
-This systen is designed to be hosted on a Linux Debian 10 machine.
+This system is designed to be hosted on a Linux Debian 10 machine.
 
 ## Automatic Installation and Setup
 
@@ -29,17 +29,16 @@ This systen is designed to be hosted on a Linux Debian 10 machine.
 
 3) Setup and Run Django and the App:
    * Go to the root directory -> ```"Bash-Buckets"```
-   * Go into 'project' where 'manage.py' is present -> ```"Bash-Buckets/project"```
+   * Go into 'project' where 'manage.py' is present -> ```"Bash-Buckets/project/manage.py"```
    * Run: ```python3 manage.py migrate```
    * Run: ```python3 manage.py runserver```
    * The server is now running and you can connect to it via localhost:8000
    * Run: ```python3 manage.py createsuperuser```
    * This will prompt you for details, provide account details for your new superuser account.
 
-
 ## Testing
+
    * Start the server by running the start script -> ```./start.sh```
-   * Inside the root directory you will find a testing folder containing 'Tests.py' -> ```"Bash-Buckets/testing"```
-   * While the server is running go to the admin page, login with you superuser credentials and get the superuser account token
-   * Run: ```python3 Tests.py <superuser-token>```
+   * Inside the root directory you will find a testing folder containing 'Tests.py' -> ```"Bash-Buckets/testing/Tests.py"```
+   * Run: ```python3 Tests.py <superuser-username> <superuser-password>```
    * This will run the tests and confirm that the App if functioning correctly

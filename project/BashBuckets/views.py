@@ -1,18 +1,10 @@
 # IMPORTED RESOURCES
-from os import stat
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from .models import AppToken, Bucket, User, UserBucket, DownloadCode
 from subprocess import CalledProcessError, check_output
 from django.core.files.storage import default_storage
 import json, magic
-
-
-# ------------------------------- DISPLAY INDEX -------------------------------
-# Index View For BashBucket API
-def index(request):
-	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:10%\">Hello, Welcome to the <i style=\"color: red\">Bash Bucket</i> cloud storage API!</h2></center></html>")
-# -----------------------------------------------------------------------------
 
 
 # ----------------------------- DISPLAY ANALYTICS -----------------------------
@@ -35,6 +27,39 @@ def analytics(request):
 		return res
 	return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:5%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><pre>"+kernel+"</pre><pre>"+cpu+"</pre><pre>"+mem+"</pre><pre>"+storage+"</pre><textarea style=\"height:650px;width:1000px\">"+packages+"</textarea></center></html>")
 # -----------------------------------------------------------------------------
+
+
+# ------------------------------ GET USER TOKEN -------------------------------
+# This function returns the user auth token for a given username password pair (Implemented to make testing easier.)
+
+def getUserToken(request):
+	if(request.method == 'POST'):
+		# Get request data
+		body = request.body
+		content = json.loads(body)
+		username = content['username']
+		password = content['password']
+
+	# 1) Get token from Database
+		try:
+			user = User.objects.get(username=username)
+			if not user.check_password(password):
+				res = HttpResponse("ERROR: Username or Password is incorrect.", status=401)
+				return res
+		except:
+			res = HttpResponse("ERROR: Username or Password is incorrect.", status=401)
+			return res
+
+	# 2) Return JSON Object
+		# Format JSON Response and return
+		data = {"status": "success", "token": str(user.token)}
+		res = JsonResponse(data)
+		return res
+
+	else:
+		return HttpResponse(status=405)
+# -----------------------------------------------------------------------------
+
 
 # -------------------------------- LIST FILES ---------------------------------
 # List Files/Folders in given bucket if Auth token is valid

@@ -14,9 +14,10 @@ import requests, time, json, sys
 
 # Reused Values
 try:
-	masterToken = str(sys.argv[1]) # Getting super user account token from command link argument
+	username = str(sys.argv[1]) # Getting super user account username from command line argument
+	password = str(sys.argv[2]) # Getting super user account password from command line argument
 except:
-	print("Please provide the superuser account token.")
+	print("Please provide the superuser account username and password.")
 	exit()
 bucketName = 'THE_TEST_BUCKET' # Name of a bucket that will be created during testing
 folderName = 'THE_TEST_FOLDER' # Name of a folder that will be created during testing
@@ -42,13 +43,20 @@ time.sleep(1)
 # =============================================================================
 
 try:
-# --------------------------------- INDEX TEST --------------------------------
-	url = "http://127.0.0.1:8000/"
-	r = requests.post(url)
-	if(r.status_code == 200):
-		print("\u001b[42m PASS: Index \u001b[0m")
+# ----------------------------- GET USER AUTH TOKEN ----------------------------
+	url = "http://127.0.0.1:8000/api/getUserToken"
+	data = {"username": username, "password": password}
+	r = requests.post(url, json=data)
+	if r.status_code == 200:
+		resData = json.loads(r.text)
+		if('status' in resData):
+			masterToken = resData['token']
+			print("\u001b[42m PASS: Retrieve User Token \u001b[0m")
+		else:
+			print("\u001b[41m FAIL: Retrieve User Token  \u001b[0m")
 	else:
-		print("\u001b[41m FAIL: Index \u001b[0m")
+		print("\u001b[41m FAIL: Retrieve User Token  -> "+str(r.status_code)+" \u001b[0m")
+		raise ("Username and password pair rejected.")
 # -----------------------------------------------------------------------------
 
 # ------------------------------- ANALYTICS TEST ------------------------------
