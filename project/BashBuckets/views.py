@@ -93,7 +93,8 @@ def listFiles(request):
 		dir = formatDirectory(path, bucket)
 		
 		# Santize Directory (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -141,15 +142,12 @@ def uploadFile(request):
 
 	# 2) Save file in bucket
 		# Format directory where the file will be saved
-		dir = formatDirectory(path, bucket)
+		dir = formatDirectory(path, bucket)+file.name
 
-		# Santize Filename and Directory (RCE is no joke and the file name my be used in a script later on)
-		if (';' in file.name) or ('|' in file.name) or ('<' in file.name) or ('>' in file.name) or ('./' in dir):
-			res = HttpResponse("ERROR: File name contains illegal characters.", status=400)
-			return res
-		
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
-			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
+		# Santize Directory (RCE is no joke)
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
+			res = HttpResponse("ERROR: File name, Path or Bucket contains illegal characters.", status=400)
 			return res
 		
 		# Get owner of bucket as an object
@@ -169,7 +167,7 @@ def uploadFile(request):
 
 		# Save file to specified directory
 		try:
-			default_storage.save(dir+file.name, file)
+			default_storage.save(dir, file)
 		except CalledProcessError:
 			res = HttpResponse("Invalid path or bucket.", status=400)
 			return res
@@ -214,7 +212,8 @@ def deleteFile(request):
 		dir = formatDirectory(path, bucket)+file
 		
 		# Santize Input (Don't want people making links to server files...)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or File name contains illegal characters.", status=400)
 			return res
 
@@ -260,7 +259,8 @@ def createFolder(request):
 		dir = formatDirectory(path, bucket)+folder
 
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -306,7 +306,8 @@ def createBucket(request):
 		dir = "buckets/"+bucket
 		
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
@@ -396,11 +397,11 @@ def deleteFolder(request):
 			return res
 
 		# Format directory where the Folder is currently stored
-		dir = formatDirectory(path, bucket)
-		dir = dir+folder
+		dir = formatDirectory(path, bucket)+folder
 		
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Folder contains illegal characters.", status=400)
 			return res
 		
@@ -444,7 +445,8 @@ def deleteBucket(request):
 		dir = "buckets/"+bucket
 
 		# Santize Input (RCE is no joke.)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 		
@@ -614,7 +616,8 @@ def createLink(request):
 		dir = formatDirectory(path, bucket)
 
 		# Santize Input (Don't want people making links to server files...)
-		if (';' in dir) or ('|' in dir) or ('<' in dir) or ('>' in dir) or ('./' in dir):
+		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
+		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
 			return res
 
