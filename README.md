@@ -17,9 +17,3 @@ Bash Buckets does however have a reporting and analytics page for System Adminis
 * [Python3](https://www.python.org/about/)
 * [Django](https://www.djangoproject.com/)
 * [Bash](https://www.gnu.org/software/bash/)
-
-## Contact
-
-Daniel Scragg - [@0xWra1th](https://twitter.com/0xWra1th) - danielscragg@outlook.com
-
-Project Link: [https://github.com/0xWra1th/Bash-Buckets](https://github.com/0xWra1th/Bash-Buckets)
