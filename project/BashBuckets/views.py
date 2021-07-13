@@ -9,6 +9,7 @@ import json, magic
 
 # ----------------------------- DISPLAY ANALYTICS -----------------------------
 # Analytics For BashBucket API
+
 def analytics(request):
 	# Call script with args
 	try:
@@ -33,7 +34,6 @@ def analytics(request):
 		res = HttpResponse("Something broke :(", status=500)
 		return res
 	return render(request, "BashBuckets/analytics.html", data)
-	#return HttpResponse("<html style=\"background-color: black;color: white\"><center><h2 style=\"margin-top:5%\"><i style=\"color: red\">Bash Bucket</i> Instance Server Analytics!</h2><pre>"+kernel+"</pre><pre>"+cpu+"</pre><pre>"+mem+"</pre><pre>"+storage+"</pre><textarea style=\"height:650px;width:1000px\">"+packages+"</textarea></center></html>")
 # -----------------------------------------------------------------------------
 
 
@@ -92,7 +92,7 @@ def listFiles(request):
 		# Format Directory String
 		dir = formatDirectory(path, bucket)
 		
-		# Santize Directory (RCE is no joke.)
+		# Sanitize Directory (RCE is no joke.)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
@@ -144,7 +144,7 @@ def uploadFile(request):
 		# Format directory where the file will be saved
 		dir = formatDirectory(path, bucket)+file.name
 
-		# Santize Directory (RCE is no joke)
+		# Sanitize Directory (RCE is no joke)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: File name, Path or Bucket contains illegal characters.", status=400)
@@ -211,7 +211,7 @@ def deleteFile(request):
 		# Format directory where the file is currently stored
 		dir = formatDirectory(path, bucket)+file
 		
-		# Santize Input (Don't want people making links to server files...)
+		# Sanitize Input (Don't want people making links to server files...)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or File name contains illegal characters.", status=400)
@@ -258,7 +258,7 @@ def createFolder(request):
 		# Format directory where the folder is to be created
 		dir = formatDirectory(path, bucket)+folder
 
-		# Santize Input (RCE is no joke.)
+		# Sanitize Input (RCE is no joke.)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
@@ -305,7 +305,7 @@ def createBucket(request):
 		# Format directory of new bucket
 		dir = "buckets/"+bucket
 		
-		# Santize Input (RCE is no joke.)
+		# Sanitize Input (RCE is no joke.)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
@@ -399,7 +399,7 @@ def deleteFolder(request):
 		# Format directory where the Folder is currently stored
 		dir = formatDirectory(path, bucket)+folder
 		
-		# Santize Input (RCE is no joke.)
+		# Sanitize Input (RCE is no joke.)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Folder contains illegal characters.", status=400)
@@ -444,7 +444,7 @@ def deleteBucket(request):
 		# Format directory where the Bucket is currently stored
 		dir = "buckets/"+bucket
 
-		# Santize Input (RCE is no joke.)
+		# Sanitize Input (RCE is no joke.)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
@@ -538,7 +538,6 @@ def deleteToken(request):
 		if type(valid) is HttpResponse:
 			return valid
 
-
 	# 2) Delete App Token
 		try:
 			AppToken.objects.get(token=apptoken).delete()
@@ -615,7 +614,7 @@ def createLink(request):
 		# Format directory where the file is currently stored
 		dir = formatDirectory(path, bucket)
 
-		# Santize Input (Don't want people making links to server files...)
+		# Sanitize Input (Don't want people making links to server files...)
 		illegalChars = [';', '|', '<', '>', './', '&', '"', "'"]
 		if any(char in dir for char in illegalChars):
 			res = HttpResponse("ERROR: Path or Bucket contains illegal characters.", status=400)
@@ -715,8 +714,9 @@ def remainingQuota(request):
 
 
 # ---------------------------- VALIDATE BUCKET TOKEN --------------------------
+# Validate User token and Bucket against DB
+
 def validateBucketToken(token, bucket, UserOnly):
-	# Validate token against DB
 	# Is the operation allowed via app token or only user tokens?
 	if UserOnly:
 		try:
@@ -749,6 +749,7 @@ def validateBucketToken(token, bucket, UserOnly):
 
 
 # -------------------------------- VALIDATE USER ------------------------------
+# Validate User Token
 def validateUser(token):
 	# Validate token against DB
 	try:
@@ -761,6 +762,8 @@ def validateUser(token):
 
 
 # ------------------------------ FORMAT DIRECTORY -----------------------------
+# Format path strings
+
 def formatDirectory(path, bucket):
 	# Format directory where the folder is to be created
 		if len(path) != 0:
@@ -780,6 +783,8 @@ def formatDirectory(path, bucket):
 
 
 # ---------------------------- GET REMAINING QUOTA -----------------------------
+# Get users remaining disk usage quota
+
 def getRemainingQuota(user):
 	# 1) Retrieve user quota
 		quota = int(user.usage_limit)
@@ -801,7 +806,6 @@ def getRemainingQuota(user):
 			# Add to total in KB
 			total+=int(size)
 
-		
 	# 3) Calculate remaining storage space in megabytes (Converting total to MB) and return
 		remaining = quota-(total/1024)
 		return remaining
