@@ -8,7 +8,7 @@
 
 ## About The Project
 
-Bash Buckets is a secure cloud file storage solution that utilises a bucket scheme.
+Bash Buckets is an insecure cloud file storage solution that utilises a bucket scheme.
 An API is provided for interaction with the service (i.e. there is no user facing front-end).
 Bash Buckets does however have a reporting and analytics page for System Administrators, this page is publicly accessible unless otherwise configured.
 
